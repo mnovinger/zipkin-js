@@ -1,7 +1,6 @@
 const lolex = require('lolex');
 const {TBinaryProtocol, TFramedTransport} = require('thrift');
 const thriftTypes = require('../src/gen-nodejs/zipkinCore_types');
-const serializeSpan = require('../src/serializeSpan');
 const TraceId = require('../src/tracer/TraceId');
 const {
   MutableSpan,
@@ -191,16 +190,6 @@ describe('64-bit trace ID', () => {
     const spanJson = serverSpan.toJSON();
     expect(spanJson.traceId).to.equal(serverSpan.traceId.traceId);
   });
-
-  it('should write trace ID as high and low numbers in Thrift representation', () => {
-    const serialized = serializeSpan(serverSpan, null);
-
-    const spanThrift = new thriftTypes.Span();
-    spanThrift.read(new TBinaryProtocol(new TFramedTransport(serialized)));
-
-    expect(spanThrift.trace_id_high).to.equal(null);
-    expect(spanThrift.trace_id.toNumber(true)).to.equal(5678);
-  });
 });
 
 describe('128-bit trace ID', () => {
@@ -215,13 +204,4 @@ describe('128-bit trace ID', () => {
     expect(spanJson.traceId).to.equal(serverSpan.traceId.traceId);
   });
 
-  it('should write trace ID as high and low numbers in Thrift representation', () => {
-    const serialized = serializeSpan(serverSpan, null);
-
-    const spanThrift = new thriftTypes.Span();
-    spanThrift.read(new TBinaryProtocol(new TFramedTransport(serialized)));
-
-    expect(spanThrift.trace_id_high.toNumber(true)).to.equal(1234);
-    expect(spanThrift.trace_id.toNumber(true)).to.equal(5678);
-  });
 });
